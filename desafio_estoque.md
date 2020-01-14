@@ -2,7 +2,7 @@
 
 ## Quem somos:
 
-Somos uma empresa de tecnologia e basicamente, o que fazemos é ligar compradores e vendedores de café verde - que é o café antes de ser torrado, moído e vendido no mercado. Parece simples, mas é uma solução que não existe no mercado mundial hoje, dada a complexibilidade que é negociar café.
+Somos uma empresa de tecnologia e, basicamente o que fazemos é ligar compradores e vendedores de café verde - que é o café antes de ser torrado, moído e vendido no mercado. Parece simples, mas é uma solução que não existe no mercado mundial hoje, dada a complexibilidade que é negociar café.
 
 ## Sobre o desafio:
 Este desafio tem como intuito testar as habilidades de desenvolvimento e arquitetura de software do candidato. Não foque apenas em entregar este projeto, ele será sim avaliado, porém, foque em aprender durante o processo e tirar o máximo de proveito possível desta experiência. 
