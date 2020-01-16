@@ -12,10 +12,22 @@ class FarmSerializer(serializers.ModelSerializer):
         model = Farm
         fields = '__all__'
 
-# class StockSerializer(serializers.ModelSerializer):
-#     coffee_types = CoffeeTypeSerializer(source='crops.get.coffee_type', many=True)
-#     origin_farms = FarmSerializer(source='crops.get.farm', many=True)
-#     class Meta:
-#         model = Stock
-#         fields = '__all__'
-#         extra_kwargs = {'owner': {'default': serializers.CurrentUserDefault()}}
+class StockSerializer(serializers.ModelSerializer):
+    coffee_types = CoffeeTypeSerializer(many=True, read_only=True)
+    origin_farms = FarmSerializer(many=True, read_only=True) 
+    available_bags = serializers.IntegerField(read_only=True)
+    withdrawal_quantity = serializers.IntegerField(read_only=True)
+    class Meta:
+        model = Stock
+        fields = '__all__'
+        extra_kwargs = {'owner': {'default': serializers.CurrentUserDefault()}}
+
+class CropSerializer(serializers.ModelSerializer):
+    available_bags = serializers.IntegerField(read_only=True)
+    withdrawal_quantity = serializers.IntegerField(read_only=True)
+    class Meta:
+        model = Crop
+        fields = '__all__'
+
+class WithdrawalSerializer(serializers.Serializer):
+    quantity = serializers.IntegerField()
