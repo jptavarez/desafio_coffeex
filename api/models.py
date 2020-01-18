@@ -86,7 +86,6 @@ class CoffeeType(BaseModel):
 
 class Farm(BaseModel):
     name = models.CharField(max_length=100)
-    deleted = models.BooleanField(default=False)
 
 class Crop(BaseModel):
     stock = models.ForeignKey(Stock, on_delete=models.PROTECT, related_name='crops')
