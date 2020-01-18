@@ -17,14 +17,15 @@ class StockSerializer(serializers.ModelSerializer):
     origin_farms = FarmSerializer(many=True, read_only=True) 
     available_bags = serializers.IntegerField(read_only=True)
     withdrawal_quantity = serializers.IntegerField(read_only=True)
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = Stock
         fields = '__all__'
-        extra_kwargs = {'owner': {'default': serializers.CurrentUserDefault()}}
 
 class CropSerializer(serializers.ModelSerializer):
     available_bags = serializers.IntegerField(read_only=True)
     withdrawal_quantity = serializers.IntegerField(read_only=True)
+    deposit_date = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Crop
         fields = '__all__'

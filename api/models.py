@@ -1,9 +1,9 @@
 from datetime import datetime
-from django.db import models
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db import models
 from django.db.models import Sum
+from django.db.models.signals import post_save
+from django.contrib.auth.models import User
 
 # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
 class Profile(models.Model):
@@ -41,12 +41,31 @@ class Stock(models.Model):
         return withdrawals
     
     @property
+    def available_space(self):
+        return self.capacity - self.available_bags
+    
+    @property
     def coffee_types(self):
-        return [crop.coffee_type for crop in self.crops.all()]
+        return list(set([crop.coffee_type for crop in self.crops.all()]))
     
     @property
     def origin_farms(self):
-        return [crop.farm for crop in self.crops.all()]
+        return list(set([crop.farm for crop in self.crops.all()]))
+    
+    def user_authorized(self, user: User):
+        if not user.profile.coffeex_manager and self.owner != user:
+            return False 
+        return True
+    
+    def save(self, *args, **kwargs):
+        if self.capacity < self.available_bags:
+            raise ValueError('A capacidade do estoque não pode ser menor que a quantidade de sacas disponíveis no estoque')
+        super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        if self.available_bags > 0:
+            raise ValueError('Não é possível deletar um estoque que possui sacas disponíveis.')
+        super().delete(*args, **kwargs)
 
 
 class CoffeeType(models.Model):
@@ -65,23 +84,31 @@ class Crop(models.Model):
 
     @property
     def withdrawal_quantity(self):
-        withdrawals = self.withdrawals.aggregate(Sum('quatity'))['quatity__sum']
+        withdrawals = self.withdrawals.aggregate(Sum('quantity'))['quantity__sum']
         return withdrawals if withdrawals else 0
     
     @property
     def available_bags(self):   
         return self.quantity - self.withdrawal_quantity
     
-    def withdrawal(self, quantity, user):
-        withdrawal = Withdrawal(crop=self, quatity=quantity)
+    def withdrawal(self, quantity):
+        if quantity > self.available_bags:
+            raise ValueError('Quantidade de sacas não disponível')
+        withdrawal = Withdrawal(crop=self, quantity=quantity)
         withdrawal.save()
     
     def user_authorized(self, user: User):
         if not user.profile.coffeex_manager and self.stock.owner != user:
             return False 
         return True
+    
+    def save(self, *args, **kwargs):
+        available_space = self.stock.available_space
+        if self.quantity > available_space:
+            raise ValueError('Espaço insuficiente no estoque')
+        super().save(*args, **kwargs)
 
 class Withdrawal(models.Model):    
-    crop = models.ForeignKey(Crop, on_delete=models.PROTECT, related_name='withdrawals')
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name='withdrawals')
     date = models.DateTimeField(default=datetime.now())
-    quatity = models.IntegerField() # todo: fix typo
+    quantity = models.IntegerField()
