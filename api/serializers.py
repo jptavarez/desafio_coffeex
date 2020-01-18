@@ -5,12 +5,12 @@ from api.models import Stock, Crop, Withdrawal, Farm, CoffeeType
 class CoffeeTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoffeeType
-        fields = '__all__'
+        fields = ['id', 'name']
 
 class FarmSerializer(serializers.ModelSerializer):
     class Meta:
         model = Farm
-        fields = '__all__'
+        fields = ['id', 'name']
 
 class StockSerializer(serializers.ModelSerializer):
     coffee_types = CoffeeTypeSerializer(many=True, read_only=True)
@@ -20,7 +20,16 @@ class StockSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = Stock
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'owner',
+            'coffee_types',
+            'origin_farms',
+            'capacity',
+            'available_bags',
+            'withdrawal_quantity'
+        ]
 
 class CropSerializer(serializers.ModelSerializer):
     available_bags = serializers.IntegerField(read_only=True)
@@ -28,7 +37,17 @@ class CropSerializer(serializers.ModelSerializer):
     deposit_date = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Crop
-        fields = '__all__'
+        fields = [
+            'id',
+            'stock', 
+            'coffee_type', 
+            'farm', 
+            'shelf_life', 
+            'quantity', 
+            'withdrawal_quantity',
+            'available_bags',
+            'deposit_date',
+        ]
 
 class WithdrawalSerializer(serializers.Serializer):
     quantity = serializers.IntegerField()

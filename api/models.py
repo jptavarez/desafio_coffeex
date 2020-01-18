@@ -4,6 +4,19 @@ from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+from api.managers import ApiManager
+
+class BaseModel(models.Model):
+    deleted = models.BooleanField(default=False)
+
+    objects = ApiManager()
+
+    class Meta:
+        abstract = True
+
+    def delete(self, *args, **kwargs):
+        self.deleted = True 
+        self.save()
 
 # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
 class Profile(models.Model):
@@ -19,10 +32,10 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
-class Stock(models.Model):
+class Stock(BaseModel):
     name = models.CharField(max_length=100)
     capacity = models.IntegerField()
-    owner = models.ForeignKey(User, on_delete=models.PROTECT)
+    owner = models.ForeignKey(User, on_delete=models.PROTECT)   
 
     @property
     def available_bags(self):
@@ -68,13 +81,14 @@ class Stock(models.Model):
         super().delete(*args, **kwargs)
 
 
-class CoffeeType(models.Model):
+class CoffeeType(BaseModel):
     name = models.CharField(max_length=100)
 
-class Farm(models.Model):
+class Farm(BaseModel):
     name = models.CharField(max_length=100)
+    deleted = models.BooleanField(default=False)
 
-class Crop(models.Model):
+class Crop(BaseModel):
     stock = models.ForeignKey(Stock, on_delete=models.PROTECT, related_name='crops')
     coffee_type = models.ForeignKey(CoffeeType, on_delete=models.PROTECT, related_name='crops') 
     farm = models.ForeignKey(Farm, on_delete=models.PROTECT, related_name='crops') 

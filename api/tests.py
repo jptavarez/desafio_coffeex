@@ -284,7 +284,29 @@ class StockTests(APITestCase):
         response = self.client.delete(reverse('stock-detail', kwargs={'pk':stock_manager}), format='json') 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST) 
         self.assertEqual(response.data['stock'], 'Não é possível deletar um estoque que possui sacas disponíveis.') 
+        self.client.logout() 
+    
+    def test_delete_stock(self):
+        self._manager_user_login()
+        name = 'Teste Estoque Manage User'
+        capacity = 500
+        response = self._create_stock(name, capacity)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        stock_manager = response.data['id']
+        self.client.logout() 
 
+        # normal user can not delete stocks that don't belong to them
+        self._normal_user_login()
+        response = self.client.delete(reverse('stock-detail', kwargs={'pk':stock_manager}), format='json') 
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.client.logout()
+
+        # now deleting using a manager user
+        self._manager_user_login()
+        response = self.client.delete(reverse('stock-detail', kwargs={'pk':stock_manager}), format='json') 
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.client.logout()
+    
     def _create_crop(self, stock, coffee_type, farm, shelf_life, quantity):
         dto = {
             'stock': stock,
@@ -339,6 +361,7 @@ class StockTests(APITestCase):
     
     def _normal_user_login(self):
         self.client.login(username=self.normal_user.username, password=self.password)
+        
 
 
          
